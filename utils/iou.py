@@ -47,7 +47,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
     box1_area = abs((box1_x1 - box1_x2) * (box1_y1 - box1_y2))
     box2_area = abs((box2_x1 - box2_x2) * (box2_y1 - box2_y2))
 
-    return intersection / (box1_area + box2_area - intersection)
+    return intersection / (box1_area + box2_area - intersection + 1e-6)
 
 
 if __name__ == '__main__':
