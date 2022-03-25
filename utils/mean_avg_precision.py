@@ -17,9 +17,9 @@ def mean_average_precision(
             if detection[1] == c:
                 detections.append(detection)
         
-        for true_boxe in true_boxes:
-            if true_boxe[1] == c:
-                ground_truths.append(true_boxe)
+        for true_box in true_boxes:
+            if true_box[1] == c:
+                ground_truths.append(true_box)
         
         amount_bboxes = Counter([gt[0] for gt in ground_truths])
         
