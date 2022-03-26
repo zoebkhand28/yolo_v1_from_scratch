@@ -1,5 +1,6 @@
 import torch
 
+
 def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
     """
     Calculate intersection over union
@@ -12,7 +13,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
     Returns:
     tensor: Intersection over union for all examples
     """
-    
+
     if box_formate == "midpoint":
 
         box1_x1 = boxes_preds[..., 0:1] - boxes_preds[..., 2:3] / 2
