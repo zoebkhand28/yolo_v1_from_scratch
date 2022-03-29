@@ -1,7 +1,7 @@
 import torch
 from collections import Counter
 
-from iou import intersection_over_union
+from utils.iou import intersection_over_union
 
 
 def mean_average_precision(
@@ -74,9 +74,9 @@ def mean_average_precision(
         TP_cumsum = torch.cumsum(TP, dim=0)
         FP_cumsum = torch.cumsum(FP, dim=0)
         recalls = TP_cumsum / (total_true_bboxes + epsilon)
-        recalls = torch.cat(torch.tensor([1]), recalls)
+        recalls = torch.cat((torch.tensor([1]), recalls))
         precisions = torch.divide(TP_cumsum, (TP_cumsum + FP_cumsum + epsilon))
-        precisions = torch.cat(torch.tensor([1]), precisions)
+        precisions = torch.cat((torch.tensor([1]), precisions))
         average_precisions.append(torch.trapz(precisions, recalls))
 
     return sum(average_precisions) / len(average_precisions)

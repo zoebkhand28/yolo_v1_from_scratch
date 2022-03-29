@@ -43,7 +43,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
     y2 = torch.min(box1_y2, box2_y2)
 
     # .clamp(0) is for the case when they do not intersect
-    intersection = (x2 - x1).calmp(0) * (y2 - y1).clamp(0)
+    intersection = (x2 - x1).clamp(0) * (y2 - y1).clamp(0)
 
     box1_area = abs((box1_x1 - box1_x2) * (box1_y1 - box1_y2))
     box2_area = abs((box2_x1 - box2_x2) * (box2_y1 - box2_y2))

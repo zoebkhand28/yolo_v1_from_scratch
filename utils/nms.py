@@ -1,5 +1,5 @@
 import torch
-from iou import intersection_over_union
+from utils.iou import intersection_over_union
 
 
 def non_max_suppression(
