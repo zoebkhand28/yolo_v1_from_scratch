@@ -1,7 +1,7 @@
 import torch
 
 
-def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
+def intersection_over_union(boxes_preds, boxes_labels, box_format="midpoint"):
     """
     Calculate intersection over union
 
@@ -14,7 +14,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
     tensor: Intersection over union for all examples
     """
 
-    if box_formate == "midpoint":
+    if box_format == "midpoint":
 
         box1_x1 = boxes_preds[..., 0:1] - boxes_preds[..., 2:3] / 2
         box1_y1 = boxes_preds[..., 1:2] - boxes_preds[..., 3:4] / 2
@@ -26,7 +26,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_formate="midpoint"):
         box2_x2 = boxes_labels[..., 0:1] + boxes_labels[..., 2:3] / 2
         box2_y2 = boxes_labels[..., 1:2] + boxes_labels[..., 3:4] / 2
 
-    elif box_formate == "corners":
+    elif box_format == "corners":
         box1_x1 = boxes_preds[..., 0:1]
         box1_y1 = boxes_preds[..., 1:2]
         box1_x2 = boxes_preds[..., 2:3]

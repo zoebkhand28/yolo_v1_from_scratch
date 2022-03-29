@@ -6,7 +6,7 @@ def non_max_suppression(
         bboxes,
         iou_threshold,
         threshold,
-        box_format="corners",
+        box_format="midpoint",
 ):
     """
     Does Non Suppression given bboxes
@@ -33,7 +33,7 @@ def non_max_suppression(
             if box[0] != chosen_box[0] or intersection_over_union(
                 torch.tensor(chosen_box[2:]),
                 torch.tensor(box[2:]),
-                box_formate=box_format
+                box_format=box_format
             ) < iou_threshold
         ]
 

@@ -8,6 +8,9 @@ from model import Yolov1
 from loss import YoloLoss
 from dataset import VOCDataset
 from utils.in_out_boxes import *
+from utils.nms import non_max_suppression
+from utils.mean_avg_precision import mean_average_precision
+
 
 
 
@@ -17,7 +20,7 @@ torch.manual_seed(seed)
 # Hyperparameter
 learning_rate = 2e-5
 device = "cuda" if torch.cuda.is_available() else "cpu"
-batch_sizes = 2
+batch_sizes = 16
 weight_decay = 0
 epochs = 100
 num_workers = 2
@@ -45,10 +48,9 @@ transform = Compose([transforms.Resize((448, 448)), transforms.ToTensor(), ])
 def train_fn(train_loader, model, optimizer, loss_fn):
     loop = tqdm(train_loader, leave=True)
     mean_loss = []
-    print("inside train func", torch.cuda.max_memory_allocated(device=device))
 
     for batch_idx, (x, y) in enumerate(loop):
-        print("inside batch loop", torch.cuda.max_memory_allocated(device=device))
+
         x, y = x.to(device), y.to(device)
         out = model(x)
         loss = loss_fn(out, y)
@@ -58,15 +60,13 @@ def train_fn(train_loader, model, optimizer, loss_fn):
         optimizer.step()
 
         # update progress bar
-        loop.set_postfix(loss=loss.items())
-        print("after completing all steps in batch loop", torch.cuda.max_memory_allocated(device=device))
-
-    print("after after batch loop", torch.cuda.max_memory_allocated(device=device))
+        loop.set_postfix(loss=loss.item())
 
     print(f"Mean loss was {sum(mean_loss) / len(mean_loss)}")
 
 
 def main():
+
     model = Yolov1(split_size=7, num_boxes=2, num_classes=20).to(device)
     optimizer = optim.Adam(
         model.parameters(), lr=learning_rate, weight_decay=weight_decay
@@ -110,52 +110,55 @@ def main():
     # )
 
     for epoch in range(epochs):
-        print("at start of epoch:", torch.cuda.max_memory_allocated(device=device))
-        torch.cuda.empty_cache()
-        print("after clearing cache:", torch.cuda.max_memory_allocated(device=device))
+        print("epoch:", epoch+1)
+
         train_fn(train_loader, model, optimizer, loss_fn)
 
+        if epoch % 10 == 0:
+            pred_boxes = []
+            true_boxes = []
 
-        # pred_boxes = []
-        # true_boxes = []
-        #
-        # model.eval()
-        # train_idx = 0
+            model.eval()
+            train_idx = 0
 
-        # for batch_idx, (x, label) in enumerate(train_loader):
-        #     x = x.to(device)
-        #     label = label.to(device)
+            for batch_idx, (x, label) in enumerate(train_loader):
 
-        # with torch.no_grad():
-        #     predictions = model(x)
+                if batch_idx > 6:
+                    break
 
-        # batch_size = x.shape[0]
-        # label_boxes = cellboxes_to_boxes(label)
-        # bboxes = cellboxes_to_boxes(predictions)
+                x = x.to(device)
+                label = label.to(device)
 
-        # for idx in range(batch_size):
-        #     nms_boxes = non_max_suppression(
-        #         bboxes[idx],
-        #         iou_threshold=0.5,
-        #         threshold=0.4,
-        #         box_format="midpoint"
-        #     )
+            with torch.no_grad():
+                predictions = model(x)
 
-        # for nms_box in nms_boxes:
-        #     pred_boxes.append([train_idx]+nms_box)
-        #
-        # for box in label_boxes[idx]:
-        #     if box[1] > 0.4:
-        #         true_boxes.append([train_idx]+box)
-        #
-        # train_idx += 1
+            batch_size = x.shape[0]
+            label_boxes = cellboxes_to_boxes(label)
+            bboxes = cellboxes_to_boxes(predictions)
 
-        # model.train()
+            for idx in range(batch_size):
+                nms_boxes = non_max_suppression(
+                    bboxes[idx],
+                    iou_threshold=0.5,
+                    threshold=0.4,
+                    box_format="midpoint"
+                )
 
-        # mean_avg_prec = mean_average_precision(
-        #     pred_boxes, true_boxes, iou_thresholds=0.5, box_format="midpoint"
-        # )
-        # print(f"Train mAP:{mean_avg_prec}")
+            for nms_box in nms_boxes:
+                pred_boxes.append([train_idx]+nms_box)
+
+            for box in label_boxes[idx]:
+                if box[1] > 0.4:
+                    true_boxes.append([train_idx]+box)
+
+            train_idx += 1
+
+            model.train()
+
+            mean_avg_prec = mean_average_precision(
+                pred_boxes, true_boxes, iou_thresholds=0.5, box_format="midpoint"
+            )
+            print(f"Train mAP:{mean_avg_prec}")
 
 
 if __name__ == '__main__':
